@@ -330,7 +330,7 @@ def make_quant(param, default_unit):
         try:
             param.to(getattr(u, default_unit))
         except u.UnitConversionError:
-            raise ValueError("Frequency for {0} with incompatible unit {1}"
+            raise ValueError("Parameter {0} with incompatible unit {1}"
                              .format(param, default_unit))
         quantity = param
     else:
