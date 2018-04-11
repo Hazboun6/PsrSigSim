@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 import numpy as np
 from . import PSS_plot
+from astropy import units as u
 try:
     import pyfftw
 except ImportError:
@@ -645,16 +646,16 @@ def r_Fres_SQ(freq, wavelength=None, D=0.5, units=['MHz', 'kPc']):
     return wavelength * D / (2*np.pi)
 
 
-def Bhat_Scint_Param(DM, frequency, Output='DeltaF_diss'):
+def Bhat_Scint_Param(DM, frequency, Output='freq_decorr_bw'):
     """
     Calculate the dependence of scintillation parameters versus DM and
-        frequency.
+        frequency using (Bhat, et al. 1997)
     """
     scat_timescale = 10**(-6.46+0.154*np.log10(DM)+1.07*(np.log10(DM))**2
                           -3.86*np.log10(frequency/1e3))
-    if Output=='DeltaF_diss':
+    if Output=='freq_decorr_bw':
         Out = 0.957/(2*np.pi*scat_timescale*1e-3)/1e6
-        #Calculate Frequency Decorrelation bandwidth
+        # Calculate Frequency Decorrelation bandwidth
     elif Output=='Scat_time':
         Out = scat_timescale
     return Out
@@ -737,7 +738,14 @@ Be careful with float division now. This has been removed to allow for numpy
 '''
 
 
-def scale_dnu_d(dnu_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
+def scale_freq_decorr_bw(dnu_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
+    """
+    Scale the frequency decorrelation bandwidth between two frequencies.
+    dnu_d = initial frequency decorrelation Bandwidth
+    nu_i = initial frequency
+    nu_f = final frequency
+    beta = wavenumber power law exponent
+    """
     if beta < 4:
         exp = 2.0*beta/(beta-2)  # (22.0/5)
     elif beta > 4:
@@ -745,7 +753,14 @@ def scale_dnu_d(dnu_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
     return dnu_d*(nu_f/nu_i)**exp
 
 
-def scale_dt_d(dt_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
+def scale_diff_timescale(dt_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
+    """
+    Scale the diffractive timescale between two frequencies.
+    dt_d = initial diffractive timescale
+    nu_i = initial frequency
+    nu_f = final frequency
+    beta = wavenumber power law exponent
+    """
     if beta < 4:
         exp = 2.0/(beta-2)  # (6.0/5)
     elif beta > 4:
@@ -753,7 +768,14 @@ def scale_dt_d(dt_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
     return dt_d*(nu_f/nu_i)**exp
 
 
-def scale_tau_d(tau_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
+def scale_scat_timescale(tau_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
+    """
+    Scale the scattering timescale between two frequencies.
+    tau_d = initial diffractive timescale
+    nu_i = initial frequency
+    nu_f = final frequency
+    beta = wavenumber power law exponent
+    """
     if beta < 4:
         exp = -2.0*beta/(beta-2)  # (-22.0/5)
     elif beta > 4:
@@ -761,9 +783,16 @@ def scale_tau_d(tau_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
     return tau_d*(nu_f/nu_i)**exp
 
 
-def scale_dt_r(tau_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
+def scale_refr_timescale(dt_d, nu_i, nu_f, beta=KOLMOGOROV_BETA):
+    """
+    Scale the scattering timescale between two frequencies.
+    tau_d = initial diffractive timescale
+    nu_i = initial frequency
+    nu_f = final frequency
+    beta = wavenumber power law exponent
+    """
     if beta < 4:
         exp = beta/float(2-beta)  # -2.2
     elif beta > 4:
         exp = 4.0/(beta-6)
-    return tau_d*(nu_f/nu_i)**exp
+    return dt_d*(nu_f/nu_i)**exp
